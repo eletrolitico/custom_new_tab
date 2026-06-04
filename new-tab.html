@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Nova aba</title>
+    <link rel="icon" href="data:," />
+    <link rel="stylesheet" href="new-tab.css" />
+  </head>
+  <body>
+    <div id="bg-layer"></div>
+
+    <main id="main">
+      <div id="bookmarks-grid">
+        <button id="add-btn" data-i18n-title="addBookmark" title="Adicionar favorito">+</button>
+      </div>
+
+      <section id="recent-section">
+        <h2 id="recent-title" data-i18n="recentlyVisited">Visitados recentemente</h2>
+        <div id="recent-grid"></div>
+      </section>
+    </main>
+
+    <button id="settings-btn" data-i18n-title="settings" title="Configurações">
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="20"
+        height="20"
+        viewBox="0 0 24 24"
+        fill="currentColor"
+      >
+        <path
+          d="M19.14 12.94c.04-.3.06-.61.06-.94s-.02-.64-.07-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.49.49 0 0 0-.59-.22l-2.39.96a7.3 7.3 0 0 0-1.62-.94l-.36-2.54A.48.48 0 0 0 13.92 2h-3.84a.48.48 0 0 0-.47.41l-.36 2.54a7.3 7.3 0 0 0-1.62.94l-2.39-.96a.48.48 0 0 0-.59.22L2.74 8.47a.48.48 0 0 0 .12.61l2.03 1.58c-.05.3-.07.63-.07.94s.02.64.07.94L2.86 14.12a.49.49 0 0 0-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54a7.3 7.3 0 0 0 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32a.49.49 0 0 0-.12-.61zM12 15.6A3.6 3.6 0 1 1 12 8.4a3.6 3.6 0 0 1 0 7.2z"
+        />
+      </svg>
+    </button>
+
+    <aside id="settings-panel">
+      <div class="panel-header">
+        <span data-i18n="settings">Configurações</span>
+        <button id="close-settings" data-i18n-title="close" title="Fechar">&times;</button>
+      </div>
+
+      <div class="panel-section">
+        <h3 data-i18n="sectionCards">Cards</h3>
+
+        <div class="setting-row">
+          <span class="setting-label" data-i18n="cardBg">Fundo</span>
+          <div class="setting-controls">
+            <input type="color" id="card-bg-color" value="#ffffff" />
+            <input
+              type="range"
+              id="card-bg-opacity"
+              min="0"
+              max="100"
+              value="10"
+            />
+            <span id="card-bg-opacity-val">10%</span>
+          </div>
+        </div>
+
+        <div class="setting-row">
+          <span class="setting-label" data-i18n="cardText">Texto</span>
+          <div class="setting-controls">
+            <input type="color" id="card-fg-color" value="#ffffff" />
+          </div>
+        </div>
+      </div>
+
+      <hr class="panel-divider" />
+
+      <div class="panel-section">
+        <h3 data-i18n="sectionBackground">Background</h3>
+
+        <div class="bg-label active" data-type="color" data-i18n="bgSolidColor">Cor sólida</div>
+        <div id="color-picker-wrap">
+          <input type="color" id="bg-color" value="#1a1a2e" />
+        </div>
+
+        <div class="bg-label" data-type="gradient" data-i18n="bgGradient">Gradiente</div>
+        <div id="gradients-wrap"></div>
+
+        <div class="bg-label" data-type="image" data-i18n="bgImage">Imagem</div>
+        <div id="image-wrap">
+          <label class="file-btn" for="bg-image" data-i18n="chooseImage">Escolher imagem</label>
+          <input type="file" id="bg-image" accept="image/*" />
+          <span id="image-name"></span>
+        </div>
+      </div>
+
+      <hr class="panel-divider" />
+
+      <div class="panel-section">
+        <h3 data-i18n="sectionDisplay">Exibição</h3>
+        <div class="setting-row">
+          <span class="setting-label" data-i18n="showRecent">Mostrar recentes</span>
+          <label class="toggle">
+            <input type="checkbox" id="toggle-recent" checked />
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+      </div>
+
+      <hr class="panel-divider" />
+
+      <button id="reset-btn" data-i18n="resetDefaults">Restaurar padrões</button>
+    </aside>
+
+    <div id="modal-overlay" class="hidden">
+      <div id="modal-add">
+        <h3 id="modal-title">Adicionar favorito</h3>
+        <label>
+          <span data-i18n="urlLabel">URL</span>
+          <input
+            type="url"
+            id="bm-url"
+            data-i18n-placeholder="urlPlaceholder"
+            placeholder="https://exemplo.com"
+            autocomplete="off"
+          />
+        </label>
+        <label>
+          <span data-i18n="nameLabel">Nome</span>
+          <input
+            type="text"
+            id="bm-title"
+            data-i18n-placeholder="namePlaceholder"
+            placeholder="Meu site"
+            autocomplete="off"
+          />
+        </label>
+        <div class="modal-actions">
+          <button id="modal-cancel" data-i18n="cancel">Cancelar</button>
+          <button id="modal-save" data-i18n="save">Salvar</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="ctx-menu" class="hidden">
+      <button class="ctx-item" id="ctx-edit" data-i18n="ctxEdit">Editar</button>
+      <button class="ctx-item ctx-danger" id="ctx-remove" data-i18n="ctxRemove">Remover</button>
+    </div>
+
+    <script src="new-tab.js"></script>
+  </body>
+</html>
