@@ -60,9 +60,11 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
   gap: 8px;
   width: 96px;
-  padding: 18px 10px 14px;
+  height: 96px;
+  padding: 10px;
   background: var(--card-bg);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
@@ -73,6 +75,10 @@ body {
   color: var(--card-color);
   text-decoration: none;
   transition: transform 0.15s;
+}
+
+.bookmark-card > * {
+  pointer-events: none;
 }
 
 .bookmark-card:hover {
@@ -88,6 +94,7 @@ body {
 .bookmark-card.drag-over {
   border: 2px dashed rgba(255, 255, 255, 0.6);
   background: rgba(255, 255, 255, 0.15);
+  padding: 9px;
 }
 
 .favicon {
@@ -189,10 +196,12 @@ body {
   position: relative;
   display: flex;
   flex-direction: column;
+  justify-content: center;
   align-items: center;
   gap: 7px;
   width: 84px;
-  padding: 14px 8px 10px;
+  aspect-ratio: 1;
+  padding: 10px;
   background: var(--card-bg);
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 12px;

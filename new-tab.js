@@ -412,7 +412,10 @@ function renderTopSites() {
     return;
   }
   const hidden = new Set(state.hiddenTopSites || []);
-  const visible = topSiteItems.filter((item) => !hidden.has(item.url)).slice(0, 8);
+  const bookmarkedDomains = new Set(state.bookmarks.map((bm) => getDomain(bm.url)).filter(Boolean));
+  const visible = topSiteItems
+    .filter((item) => !hidden.has(item.url) && !bookmarkedDomains.has(getDomain(item.url)))
+    .slice(0, 8);
   if (!visible.length) {
     recentSection.style.display = "none";
     return;
@@ -448,6 +451,7 @@ function createRecentCard(item) {
     });
     saveState();
     renderBookmarks();
+    renderTopSites();
   });
 
   const dismissBtn = document.createElement("button");
