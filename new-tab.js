@@ -1,6 +1,6 @@
 // ── i18n ──────────────────────────────────────────────────────
 function t(key) {
-  return (chrome?.i18n?.getMessage(key)) || key;
+  return chrome?.i18n?.getMessage(key) || key;
 }
 
 function applyI18n() {
@@ -30,7 +30,7 @@ const GRADIENTS = [
 
 const DEFAULT_STATE = {
   bookmarks: [],
-  background: { type: "color", value: "#1a1a2e" },
+  background: { type: "color", value: "#3c3c3c" },
   cardStyle: { bgColor: "#ffffff", bgOpacity: 10, fgColor: "#ffffff" },
   showRecent: true,
 };
@@ -41,10 +41,12 @@ let dragSrcIndex = null;
 // ── Persistence ──────────────────────────────────────────────
 function loadState() {
   try {
-    const saved = JSON.parse(localStorage.getItem("ntp_state"));
-    return saved || JSON.parse(JSON.stringify(DEFAULT_STATE));
+    return (
+      JSON.parse(localStorage.getItem("ntp_state")) ??
+      structuredClone(DEFAULT_STATE)
+    );
   } catch {
-    return JSON.parse(JSON.stringify(DEFAULT_STATE));
+    return structuredClone(DEFAULT_STATE);
   }
 }
 
@@ -132,10 +134,12 @@ function hexToRgb(hex) {
 function applyCardStyle(style) {
   const [r, g, b] = hexToRgb(style.bgColor);
   const op = style.bgOpacity / 100;
-  const opHover = Math.min(1, op + 0.1);
   const root = document.documentElement;
   root.style.setProperty("--card-bg", `rgba(${r},${g},${b},${op})`);
-  root.style.setProperty("--card-bg-hover", `rgba(${r},${g},${b},${opHover})`);
+  root.style.setProperty(
+    "--card-bg-hover",
+    `rgba(${r},${g},${b},${Math.min(1, op + 0.1)})`,
+  );
   root.style.setProperty("--card-color", style.fgColor);
 }
 
@@ -186,11 +190,18 @@ function getFaviconUrl(url) {
     : "";
 }
 
-function createLetterFavicon(title) {
-  const el = document.createElement("div");
-  el.className = "favicon-letter";
-  el.textContent = (title && title[0]) || "?";
-  return el;
+function createFaviconImg(src, title) {
+  const img = document.createElement("img");
+  img.className = "favicon";
+  img.src = src;
+  img.alt = "";
+  img.addEventListener("error", () => {
+    const letter = document.createElement("div");
+    letter.className = "favicon-letter";
+    letter.textContent = (title && title[0]) || "?";
+    img.replaceWith(letter);
+  });
+  return img;
 }
 
 function createCard(bm, index) {
@@ -199,44 +210,31 @@ function createCard(bm, index) {
   card.draggable = true;
   card.dataset.index = index;
 
-  const img = document.createElement("img");
-  img.className = "favicon";
-  img.src = bm.favicon || getFaviconUrl(bm.url);
-  img.alt = "";
-  img.addEventListener("error", () => {
-    img.replaceWith(createLetterFavicon(bm.title));
-  });
-
   const titleEl = document.createElement("span");
   titleEl.className = "bm-title";
   titleEl.textContent = bm.title;
   titleEl.title = bm.title;
 
-  card.appendChild(img);
-  card.appendChild(titleEl);
+  card.append(
+    createFaviconImg(bm.favicon || getFaviconUrl(bm.url), bm.title),
+    titleEl,
+  );
 
   card.addEventListener("click", () => {
     window.location.href = bm.url;
   });
-
-  card.addEventListener("contextmenu", (e) => {
-    showCtxMenu(e, index);
-  });
+  card.addEventListener("contextmenu", (e) => showCtxMenu(e, index));
 
   card.addEventListener("dragstart", () => {
     dragSrcIndex = index;
     card.classList.add("dragging");
   });
-  card.addEventListener("dragend", () => {
-    card.classList.remove("dragging");
-  });
+  card.addEventListener("dragend", () => card.classList.remove("dragging"));
   card.addEventListener("dragover", (e) => {
     e.preventDefault();
     card.classList.add("drag-over");
   });
-  card.addEventListener("dragleave", () => {
-    card.classList.remove("drag-over");
-  });
+  card.addEventListener("dragleave", () => card.classList.remove("drag-over"));
   card.addEventListener("drop", (e) => {
     e.preventDefault();
     card.classList.remove("drag-over");
@@ -305,20 +303,12 @@ let editingIndex = null;
 
 function openModal(index = null) {
   editingIndex = index;
-  if (index !== null) {
-    const bm = state.bookmarks[index];
-    bmUrlInput.value = bm.url;
-    bmTitleInput.value = bm.title;
-    modalTitle.textContent = t("editBookmarkTitle");
-    modalOverlay.classList.remove("hidden");
-    bmTitleInput.focus();
-  } else {
-    bmUrlInput.value = "";
-    bmTitleInput.value = "";
-    modalTitle.textContent = t("addBookmarkTitle");
-    modalOverlay.classList.remove("hidden");
-    bmUrlInput.focus();
-  }
+  const bm = index !== null ? state.bookmarks[index] : null;
+  bmUrlInput.value = bm?.url ?? "";
+  bmTitleInput.value = bm?.title ?? "";
+  modalTitle.textContent = t(bm ? "editBookmarkTitle" : "addBookmarkTitle");
+  modalOverlay.classList.remove("hidden");
+  (bm ? bmTitleInput : bmUrlInput).focus();
 }
 
 function closeModal() {
@@ -397,7 +387,6 @@ document.getElementById("close-settings").addEventListener("click", () => {
   panel.classList.remove("open");
 });
 
-// Close panel when clicking outside
 document.addEventListener("click", (e) => {
   if (
     panel.classList.contains("open") &&
@@ -423,6 +412,44 @@ function renderRecentFiltered() {
   renderRecentSites(filtered);
 }
 
+function createRecentCard(item) {
+  const label =
+    item.title || getDomain(item.url).replace(/^www\./, "") || item.url;
+
+  const card = document.createElement("a");
+  card.className = "recent-card";
+  card.href = item.url;
+
+  const titleEl = document.createElement("span");
+  titleEl.className = "bm-title";
+  titleEl.textContent = label;
+  titleEl.title = label;
+
+  const pinBtn = document.createElement("button");
+  pinBtn.className = "pin-btn";
+  pinBtn.textContent = "+";
+  pinBtn.title = t("addToBookmarks");
+  pinBtn.addEventListener("click", (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    state.bookmarks.push({
+      id: Date.now().toString(36) + Math.random().toString(36).slice(2),
+      title: label,
+      url: item.url,
+      favicon: getFaviconUrl(item.url),
+    });
+    saveState();
+    renderBookmarks();
+  });
+
+  card.append(
+    createFaviconImg(getFaviconUrl(item.url), label),
+    titleEl,
+    pinBtn,
+  );
+  return card;
+}
+
 function renderRecentSites(items) {
   recentGrid.innerHTML = "";
   if (!items.length || !state.showRecent) {
@@ -430,50 +457,7 @@ function renderRecentSites(items) {
     return;
   }
   recentSection.style.display = "";
-  items.forEach((item) => {
-    const card = document.createElement("a");
-    card.className = "recent-card";
-    card.href = item.url;
-
-    const img = document.createElement("img");
-    img.className = "favicon";
-    img.src = getFaviconUrl(item.url);
-    img.alt = "";
-    img.addEventListener("error", () => {
-      img.replaceWith(createLetterFavicon(item.title || item.url));
-    });
-
-    const label =
-      item.title || getDomain(item.url).replace(/^www\./, "") || item.url;
-
-    const titleEl = document.createElement("span");
-    titleEl.className = "bm-title";
-    titleEl.textContent = label;
-    titleEl.title = label;
-
-    const pinBtn = document.createElement("button");
-    pinBtn.className = "pin-btn";
-    pinBtn.textContent = "+";
-    pinBtn.title = t("addToBookmarks");
-    pinBtn.addEventListener("click", (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      const bm = {
-        id: Date.now().toString(36) + Math.random().toString(36).slice(2),
-        title: label,
-        url: item.url,
-        favicon: getFaviconUrl(item.url),
-      };
-      state.bookmarks.push(bm);
-      saveState();
-      renderBookmarks();
-    });
-
-    card.appendChild(img);
-    card.appendChild(titleEl);
-    card.appendChild(pinBtn);
-    recentGrid.appendChild(card);
-  });
+  items.forEach((item) => recentGrid.appendChild(createRecentCard(item)));
 }
 
 function loadRecentHistory() {
@@ -509,10 +493,11 @@ document.getElementById("toggle-recent").addEventListener("change", (e) => {
   saveState();
   renderRecentFiltered();
 });
+
 document.getElementById("reset-btn").addEventListener("click", () => {
   const { background, cardStyle, showRecent } = DEFAULT_STATE;
-  state.background = JSON.parse(JSON.stringify(background));
-  state.cardStyle = JSON.parse(JSON.stringify(cardStyle));
+  state.background = structuredClone(background);
+  state.cardStyle = structuredClone(cardStyle);
   state.showRecent = showRecent;
   saveState();
   applyBackground(state.background);
