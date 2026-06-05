@@ -215,8 +215,9 @@ function createFaviconImg(url, title) {
 }
 
 function createCard(bm, index) {
-  const card = document.createElement("div");
+  const card = document.createElement("a");
   card.className = "bookmark-card";
+  card.href = bm.url;
   card.draggable = true;
   card.dataset.index = index;
 
@@ -227,9 +228,6 @@ function createCard(bm, index) {
 
   card.append(createFaviconImg(bm.url, bm.title), titleEl);
 
-  card.addEventListener("click", () => {
-    window.location.href = bm.url;
-  });
   card.addEventListener("contextmenu", (e) => showCtxMenu(e, index));
 
   card.addEventListener("dragstart", () => {

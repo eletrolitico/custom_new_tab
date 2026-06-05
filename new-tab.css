@@ -71,6 +71,7 @@ body {
   cursor: pointer;
   user-select: none;
   color: var(--card-color);
+  text-decoration: none;
   transition: transform 0.15s;
 }
 
