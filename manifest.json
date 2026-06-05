@@ -7,7 +7,7 @@
   "chrome_url_overrides": {
     "newtab": "new-tab.html"
   },
-  "permissions": ["topSites", "favicon"],
+  "permissions": ["topSites", "favicon", "history"],
   "web_accessible_resources": [
     {
       "resources": ["_favicon/*"],

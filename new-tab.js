@@ -33,7 +33,6 @@ const DEFAULT_STATE = {
   background: { type: "color", value: "#3c3c3c" },
   cardStyle: { bgColor: "#ffffff", bgOpacity: 10, fgColor: "#ffffff" },
   showRecent: true,
-  hiddenTopSites: [],
 };
 
 let state;
@@ -411,10 +410,11 @@ function renderTopSites() {
     recentSection.style.display = "none";
     return;
   }
-  const hidden = new Set(state.hiddenTopSites || []);
-  const bookmarkedDomains = new Set(state.bookmarks.map((bm) => getDomain(bm.url)).filter(Boolean));
+  const bookmarkedDomains = new Set(
+    state.bookmarks.map((bm) => getDomain(bm.url)).filter(Boolean),
+  );
   const visible = topSiteItems
-    .filter((item) => !hidden.has(item.url) && !bookmarkedDomains.has(getDomain(item.url)))
+    .filter((item) => !bookmarkedDomains.has(getDomain(item.url)))
     .slice(0, 8);
   if (!visible.length) {
     recentSection.style.display = "none";
@@ -461,10 +461,9 @@ function createRecentCard(item) {
   dismissBtn.addEventListener("click", (e) => {
     e.preventDefault();
     e.stopPropagation();
-    if (!state.hiddenTopSites) state.hiddenTopSites = [];
-    state.hiddenTopSites.push(item.url);
-    saveState();
-    renderTopSites();
+    chrome.history
+      .deleteUrl({ url: item.url })
+      .then(() => setTimeout(() => loadTopSites(), 100));
   });
 
   card.append(createFaviconImg(item.url, label), titleEl, pinBtn, dismissBtn);
@@ -487,7 +486,6 @@ applyI18n();
 state = loadState();
 if (!state.cardStyle) state.cardStyle = DEFAULT_STATE.cardStyle;
 if (state.showRecent === undefined) state.showRecent = true;
-if (!state.hiddenTopSites) state.hiddenTopSites = [];
 
 document.getElementById("toggle-recent").addEventListener("change", (e) => {
   state.showRecent = e.target.checked;
@@ -500,7 +498,6 @@ document.getElementById("reset-btn").addEventListener("click", () => {
   state.background = structuredClone(background);
   state.cardStyle = structuredClone(cardStyle);
   state.showRecent = showRecent;
-  state.hiddenTopSites = [];
   saveState();
   applyBackground(state.background);
   applyCardStyle(state.cardStyle);
