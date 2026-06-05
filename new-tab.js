@@ -183,19 +183,29 @@ function getDomain(url) {
   }
 }
 
-function getFaviconUrl(url) {
-  const domain = getDomain(url);
-  return domain
-    ? `https://www.google.com/s2/favicons?domain=${domain}&sz=64`
-    : "";
+function getFaviconUrl(u) {
+  if (!u) return "";
+  const url = new URL(chrome.runtime.getURL("/_favicon/"));
+  url.searchParams.set("pageUrl", u);
+  url.searchParams.set("size", "32");
+  return url.toString();
 }
 
-function createFaviconImg(src, title) {
+function createFaviconImg(url, title) {
   const img = document.createElement("img");
   img.className = "favicon";
-  img.src = src;
+  img.src = getFaviconUrl(url);
   img.alt = "";
+  let usedFallback = false;
   img.addEventListener("error", () => {
+    if (!usedFallback) {
+      usedFallback = true;
+      const domain = getDomain(url);
+      if (domain) {
+        img.src = `https://www.google.com/s2/favicons?domain=${domain}&sz=64`;
+        return;
+      }
+    }
     const letter = document.createElement("div");
     letter.className = "favicon-letter";
     letter.textContent = (title && title[0]) || "?";
@@ -215,10 +225,7 @@ function createCard(bm, index) {
   titleEl.textContent = bm.title;
   titleEl.title = bm.title;
 
-  card.append(
-    createFaviconImg(bm.favicon || getFaviconUrl(bm.url), bm.title),
-    titleEl,
-  );
+  card.append(createFaviconImg(bm.url, bm.title), titleEl);
 
   card.addEventListener("click", () => {
     window.location.href = bm.url;
@@ -331,14 +338,12 @@ function saveBookmark() {
       ...state.bookmarks[editingIndex],
       title,
       url,
-      favicon: getFaviconUrl(url),
     };
   } else {
     state.bookmarks.push({
       id: Date.now().toString(36) + Math.random().toString(36).slice(2),
       title,
       url,
-      favicon: getFaviconUrl(url),
     });
   }
   saveState();
@@ -436,17 +441,12 @@ function createRecentCard(item) {
       id: Date.now().toString(36) + Math.random().toString(36).slice(2),
       title: label,
       url: item.url,
-      favicon: getFaviconUrl(item.url),
     });
     saveState();
     renderBookmarks();
   });
 
-  card.append(
-    createFaviconImg(getFaviconUrl(item.url), label),
-    titleEl,
-    pinBtn,
-  );
+  card.append(createFaviconImg(item.url, label), titleEl, pinBtn);
   return card;
 }
 

@@ -1,7 +1,7 @@
 {
   "extName": { "message": "Minha nova aba personalizada" },
   "extDescription": { "message": "Substitui a página de nova aba" },
-  "appTitle": { "message": "Nova aba" },
+  "appTitle": { "message": "Nova Aba" },
   "addBookmark": { "message": "Adicionar favorito" },
   "addBookmarkTitle": { "message": "Adicionar favorito" },
   "editBookmarkTitle": { "message": "Editar favorito" },

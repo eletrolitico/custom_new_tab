@@ -1,7 +1,7 @@
 {
   "extName": { "message": "My custom new tab page" },
   "extDescription": { "message": "Overrides the new tab page" },
-  "appTitle": { "message": "New tab" },
+  "appTitle": { "message": "New Tab" },
   "addBookmark": { "message": "Add bookmark" },
   "addBookmarkTitle": { "message": "Add bookmark" },
   "editBookmarkTitle": { "message": "Edit bookmark" },
