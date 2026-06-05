@@ -5,7 +5,7 @@
   "addBookmark": { "message": "Add bookmark" },
   "addBookmarkTitle": { "message": "Add bookmark" },
   "editBookmarkTitle": { "message": "Edit bookmark" },
-  "recentlyVisited": { "message": "Recently visited" },
+  "recentlyVisited": { "message": "Most visited" },
   "settings": { "message": "Settings" },
   "close": { "message": "Close" },
   "sectionCards": { "message": "Cards" },
@@ -27,5 +27,6 @@
   "save": { "message": "Save" },
   "ctxEdit": { "message": "Edit" },
   "ctxRemove": { "message": "Remove" },
-  "addToBookmarks": { "message": "Add to bookmarks" }
+  "addToBookmarks": { "message": "Add to bookmarks" },
+  "removeTopSite": { "message": "Remove shortcut" }
 }

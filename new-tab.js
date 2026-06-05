@@ -33,6 +33,7 @@ const DEFAULT_STATE = {
   background: { type: "color", value: "#3c3c3c" },
   cardStyle: { bgColor: "#ffffff", bgOpacity: 10, fgColor: "#ffffff" },
   showRecent: true,
+  hiddenTopSites: [],
 };
 
 let state;
@@ -259,7 +260,6 @@ function renderBookmarks() {
   grid.innerHTML = "";
   state.bookmarks.forEach((bm, i) => grid.appendChild(createCard(bm, i)));
   grid.appendChild(addBtn);
-  if (recentItems.length) renderRecentFiltered();
 }
 
 // ── Context menu ──────────────────────────────────────────────
@@ -403,16 +403,22 @@ document.addEventListener("click", (e) => {
 // ── Recent history ────────────────────────────────────────────
 const recentGrid = document.getElementById("recent-grid");
 const recentSection = document.getElementById("recent-section");
-let recentItems = [];
+let topSiteItems = [];
 
-function renderRecentFiltered() {
-  const bookmarkedDomains = new Set(
-    state.bookmarks.map((bm) => getDomain(bm.url)).filter(Boolean),
-  );
-  const filtered = recentItems
-    .filter((item) => !bookmarkedDomains.has(getDomain(item.url)))
-    .slice(0, 10);
-  renderRecentSites(filtered);
+function renderTopSites() {
+  recentGrid.innerHTML = "";
+  if (!state.showRecent) {
+    recentSection.style.display = "none";
+    return;
+  }
+  const hidden = new Set(state.hiddenTopSites || []);
+  const visible = topSiteItems.filter((item) => !hidden.has(item.url)).slice(0, 8);
+  if (!visible.length) {
+    recentSection.style.display = "none";
+    return;
+  }
+  recentSection.style.display = "";
+  visible.forEach((item) => recentGrid.appendChild(createRecentCard(item)));
 }
 
 function createRecentCard(item) {
@@ -444,40 +450,32 @@ function createRecentCard(item) {
     renderBookmarks();
   });
 
-  card.append(createFaviconImg(item.url, label), titleEl, pinBtn);
+  const dismissBtn = document.createElement("button");
+  dismissBtn.className = "dismiss-btn";
+  dismissBtn.textContent = "×";
+  dismissBtn.title = t("removeTopSite");
+  dismissBtn.addEventListener("click", (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!state.hiddenTopSites) state.hiddenTopSites = [];
+    state.hiddenTopSites.push(item.url);
+    saveState();
+    renderTopSites();
+  });
+
+  card.append(createFaviconImg(item.url, label), titleEl, pinBtn, dismissBtn);
   return card;
 }
 
-function renderRecentSites(items) {
-  recentGrid.innerHTML = "";
-  if (!items.length || !state.showRecent) {
+function loadTopSites() {
+  if (!chrome?.topSites) {
     recentSection.style.display = "none";
     return;
   }
-  recentSection.style.display = "";
-  items.forEach((item) => recentGrid.appendChild(createRecentCard(item)));
-}
-
-function loadRecentHistory() {
-  if (!chrome?.history) {
-    recentSection.style.display = "none";
-    return;
-  }
-  chrome.history.search(
-    { text: "", maxResults: 100, startTime: 0 },
-    (results) => {
-      const seen = new Map();
-      for (const item of results) {
-        if (!item.url || !item.url.startsWith("http")) continue;
-        const domain = getDomain(item.url);
-        if (!domain || seen.has(domain)) continue;
-        seen.set(domain, item);
-        if (seen.size === 20) break;
-      }
-      recentItems = [...seen.values()];
-      renderRecentFiltered();
-    },
-  );
+  chrome.topSites.get((sites) => {
+    topSiteItems = sites || [];
+    renderTopSites();
+  });
 }
 
 // ── Init ──────────────────────────────────────────────────────
@@ -485,11 +483,12 @@ applyI18n();
 state = loadState();
 if (!state.cardStyle) state.cardStyle = DEFAULT_STATE.cardStyle;
 if (state.showRecent === undefined) state.showRecent = true;
+if (!state.hiddenTopSites) state.hiddenTopSites = [];
 
 document.getElementById("toggle-recent").addEventListener("change", (e) => {
   state.showRecent = e.target.checked;
   saveState();
-  renderRecentFiltered();
+  renderTopSites();
 });
 
 document.getElementById("reset-btn").addEventListener("click", () => {
@@ -497,13 +496,14 @@ document.getElementById("reset-btn").addEventListener("click", () => {
   state.background = structuredClone(background);
   state.cardStyle = structuredClone(cardStyle);
   state.showRecent = showRecent;
+  state.hiddenTopSites = [];
   saveState();
   applyBackground(state.background);
   applyCardStyle(state.cardStyle);
   syncBgControls();
   syncCardControls();
   document.getElementById("toggle-recent").checked = state.showRecent;
-  renderRecentFiltered();
+  renderTopSites();
 });
 
 buildGradientSwatches();
@@ -513,4 +513,4 @@ document.getElementById("toggle-recent").checked = state.showRecent;
 applyBackground(state.background);
 applyCardStyle(state.cardStyle);
 renderBookmarks();
-loadRecentHistory();
+loadTopSites();

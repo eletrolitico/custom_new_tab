@@ -5,7 +5,7 @@
   "addBookmark": { "message": "Adicionar favorito" },
   "addBookmarkTitle": { "message": "Adicionar favorito" },
   "editBookmarkTitle": { "message": "Editar favorito" },
-  "recentlyVisited": { "message": "Visitados recentemente" },
+  "recentlyVisited": { "message": "Mais visitados" },
   "settings": { "message": "Configurações" },
   "close": { "message": "Fechar" },
   "sectionCards": { "message": "Cards" },
@@ -27,5 +27,6 @@
   "save": { "message": "Salvar" },
   "ctxEdit": { "message": "Editar" },
   "ctxRemove": { "message": "Remover" },
-  "addToBookmarks": { "message": "Adicionar aos favoritos" }
+  "addToBookmarks": { "message": "Adicionar aos favoritos" },
+  "removeTopSite": { "message": "Remover atalho" }
 }
